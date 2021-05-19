@@ -75,9 +75,9 @@ void set(FLdir* dlist, char* str_array,link_value first_value ){
 
     for(i=0;i<len;++i){
         aux_bucket->head = insert_without_rep(aux_bucket->head,path->sub_path[i]);
-        aux_bucket = insert_dir(aux_bucket,0,(i+1),path);
-        aux_bucket = search_dir(aux_bucket,0,(i+1),path);   
+        dlist->first = insert_dir(dlist->first,0,(i+1),path);   
     }
+    aux_bucket = search_dir(dlist->first,0,i,path);
     first_value = insertValue(first_value,aux_bucket, valor);
 } 
 
@@ -156,6 +156,5 @@ int main(){
         }
         scanf("%s",command);
     }
-
     return EXIT_SUCCESS;
 }
