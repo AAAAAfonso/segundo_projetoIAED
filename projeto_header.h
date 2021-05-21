@@ -63,6 +63,7 @@ link insert_without_rep(link h, char* text);
 link max(link h);
 link delete_node(link h, char* text);
 link search(link h, char* text) ;
+void traverse_delete_sub(link h);
 void traverse(Directory* h);
 void traverse_alphabetic(link h);
 void traverse_filter(Directory* h, char* value,int* check);

@@ -213,10 +213,12 @@ Directory* search_dir(Directory* base,int depth,int max_size,Caminho* new_path){
 Directory* closest(Directory* base,Caminho* objective, int depth){
     if(depth == objective->quant_path)
         return NULL;
-    while (base->diferent != NULL 
-    && strcmp(base->diferent->base_path->sub_path[depth],
+    while (base->diferent == NULL &&
+    strcmp(base->diferent->base_path->sub_path[depth],
     objective->sub_path[depth]) != 0){
-        base = base->diferent;    
+        base = base->diferent;
+        if(base->diferent == NULL)
+            return NULL;
     }
     if(depth == objective->quant_path - 1){
         return base;

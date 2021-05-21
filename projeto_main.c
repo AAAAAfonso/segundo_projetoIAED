@@ -161,20 +161,39 @@ void delete_(Directory* first_dir,char* str_array){
 
     if(getchar() == '\n'){
         traverse_delete_dir(first_dir->diferent);
+        traverse_delete_sub(first_dir->head);
+        first_dir->head = NULL;
         first_dir->diferent = NULL;
         return;
     }
     scanf(" %s", str_array);
     len = strlen(str_array);
     path = leitura_caminho(str_array,len);
-    if((aux_prox = closest(first_dir,path, 0)) != NULL){
-        if(aux_prox->base_path->quant_path == path->quant_path){
-            aux = aux_prox->diferent;
-            aux->diferent = aux_prox->diferent;
+    if((aux = search_dir(first_dir,0,path->quant_path,path)) != NULL){
+        if(aux->base_path->quant_path == 1){
+            first_dir->head = delete_node(first_dir->head,path->sub_path[path->quant_path-1]);
+            aux_prox = first_dir;
+            while (strcmp(aux_prox->diferent->base_path->sub_path[0],
+            path->sub_path[0]) != 0)
+                aux_prox = aux_prox->diferent;
+            aux_prox->diferent = aux->diferent;
             traverse_delete_dir(aux->equal);
             delete_dir(aux);
-            aux_prox = search_dir(first_dir,0,path->quant_path - 1,path);
+            delete_path(path);
+            path = NULL;
+            return;
+        }
+        aux_prox = search_dir(first_dir,0,path->quant_path-1,path);
+        if(strcmp(aux_prox->equal->base_path->sub_path[path->quant_path-1],
+        path->sub_path[path->quant_path-1]) != 0){
             aux_prox->head = delete_node(aux_prox->head,path->sub_path[path->quant_path-1]);
+            aux_prox = aux_prox->equal;
+            while (strcmp(aux_prox->diferent->base_path->sub_path[path->quant_path-1],
+            path->sub_path[path->quant_path-1]) != 0)
+                aux_prox = aux_prox->diferent;
+            aux_prox->diferent = aux->diferent;
+            traverse_delete_dir(aux->equal);
+            delete_dir(aux);
         }
         else{
             aux_prox->head = delete_node(aux_prox->head,path->sub_path[path->quant_path-1]);
