@@ -192,8 +192,8 @@ Directory* insert_dir(Directory* base,int depth,int max_size,Caminho* path){
             base->equal = insert_dir(base->equal,depth+1,max_size,path);
         else
             base->diferent = insert_dir(base->diferent,depth,max_size,path);
-    else if(strcmp(base->base_path->sub_path[depth],path->sub_path[depth]) != SAME_STR)
-        base->diferent = insert_dir(base->diferent,depth,max_size,path);   
+    else if( strcmp(base->base_path->sub_path[max_size-1],path->sub_path[max_size-1]) != SAME_STR)
+        base->diferent = insert_dir(base->diferent,depth,max_size,path);
     return base;
 }
 
@@ -205,7 +205,7 @@ Directory* search_dir(Directory* base,int depth,int max_size,Caminho* new_path){
             return search_dir(base->equal,depth+1,max_size,new_path);
         else
             return search_dir(base->diferent,depth,max_size,new_path);
-    else if(strcmp(base->base_path->sub_path[depth],new_path->sub_path[depth]) != SAME_STR)
+    else if(strcmp(base->base_path->sub_path[max_size-1],new_path->sub_path[max_size-1]) != SAME_STR)
         return search_dir(base->diferent,depth,max_size,new_path);   
     return base;
 }  

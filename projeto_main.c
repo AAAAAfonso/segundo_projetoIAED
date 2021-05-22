@@ -73,7 +73,7 @@ void set(Directory* first_dir, char* str_array){
 
     for(i=0;i<len;++i){
         aux_bucket->head = insert_without_rep(aux_bucket->head,path->sub_path[i]);
-        first_dir = insert_dir(first_dir,0,(i+1),path);
+        first_dir = insert_dir(aux_bucket,0,(i+1),path);
         aux_bucket = search_dir(first_dir,0,(i+1),path); 
     }
     if(aux_bucket->value != NULL){
@@ -228,6 +228,7 @@ int main(){
     char str_array[MAX_LINE];
     struct dir* first_dir;
     struct caminho* inicial_path;
+    
     inicial_path = NEWPath(".",1);
 
 

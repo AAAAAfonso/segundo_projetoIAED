@@ -52,6 +52,8 @@ typedef struct caminho{
     int quant_path;
 }Caminho;
 
+
+
 Directory* NEWDirectory(Caminho* path,Directory* equal,Directory* dif,int depth);
 Directory* insert_dir(Directory* base,int depth,int max_size,Caminho* path);
 Directory* search_dir(Directory* base,int depth,int max_size,Caminho* new_path);
