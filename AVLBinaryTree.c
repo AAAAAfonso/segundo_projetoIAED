@@ -65,38 +65,36 @@ link delete_node(link h, char* text) {
     return h;
 }
 
-void traverse(Directory* h){
+HashValue* findByHashValue(Directory* h, HashValue* hash_val){
+    if(hash_val == NULL)
+        return NULL;
+    if(hash_val->next == NULL)
+        return hash_val;
+    else{
+        while (hash_val->dir != h){
+            hash_val = hash_val->next;
+        }
+        return hash_val;
+    }
+}
 
+void traverse(Directory* h,HashValue** values){
+
+    int i;
+    HashValue* aux;
     if (h == NULL)
         return;
-    if(h->value != NULL){
-        int i;
+    aux = findByHashValue(h, values[h->hash_value]);
+    if(aux != NULL){
         for(i = 0; i < h->base_path->quant_path;++i){
             printf("/%s", h->base_path->sub_path[i]);
         }
-        printf(" %s\n", h->value);
+        printf(" %s\n", aux->value);
     }
-    traverse(h->equal);
-    traverse(h->diferent);
+    traverse(h->equal,values);
+    traverse(h->diferent,values);
 }
 
-void traverse_filter(Directory* h, char* value,int* check){
-
-    if(check[0] == 0){
-        if (h == NULL)
-            return;
-        if(h->value != NULL && strcmp(h->value,value) == SAME_STR){
-            int i;
-            for(i = 0; i < h->base_path->quant_path;++i){
-                printf("/%s", h->base_path->sub_path[i]);
-            }
-            printf("\n");
-            check[0]++;
-        }
-        traverse_filter(h->equal,value,check);
-        traverse_filter(h->diferent,value,check);
-    }
-}
 
 void traverse_alphabetic(link h){
     if (h == NULL)
@@ -106,12 +104,12 @@ void traverse_alphabetic(link h){
     traverse_alphabetic(h->r);
 }
 
-void traverse_delete_dir(Directory* h){
+void traverse_delete_dir(Directory* h,HashValue** values){
     if (h == NULL)
         return;
-    traverse_delete_dir(h->equal);
-    traverse_delete_dir(h->diferent);
-    delete_dir(h);
+    traverse_delete_dir(h->equal,values);
+    traverse_delete_dir(h->diferent,values);
+    delete_dir(h,values);
     h = NULL;
 }
 
@@ -137,10 +135,39 @@ void delete_path(Caminho* h){
     free(h);
 }
 
-void delete_dir(Directory* h){
+HashValue* delete_hashvalue(HashValue* hash_value,Directory* h){
+    HashValue* aux, *aux1 = hash_value;
+    if(hash_value != NULL){
+        if(hash_value->value != NULL){
+            if(hash_value->next == NULL){
+                free(hash_value->value);
+            }else{
+                if(hash_value->dir == h){
+                    aux = aux1->next;
+                    free(hash_value->value);
+                    free(hash_value);
+                    return aux;
+                }
+                while (hash_value->next->dir != h){
+                    hash_value = hash_value->next;
+                }
+                aux = hash_value->next;
+                hash_value->next = hash_value->next->next;
+                free(aux->value);
+                free(aux);
+                return aux1;
+            }
+        }
+        free(hash_value);
+        return NULL;
+    }  
+    return NULL;
+}
+
+void delete_dir(Directory* h,HashValue** values){
 
     traverse_delete_sub(h->head);
-    free(h->value);
+    values[h->hash_value] = delete_hashvalue(values[h->hash_value],h);
     delete_path(h->base_path);
     free(h);  
     h = NULL;
@@ -179,7 +206,7 @@ Directory* NEWDirectory(Caminho* path,Directory* equal,Directory* dif,int depth)
     
     x->equal = equal;
     x->diferent = dif;
-    x->value = NULL;
+    x->hash_value = 0;
     x->head = NULL;
     return x;
 }
@@ -230,4 +257,33 @@ Directory* closest(Directory* base,Caminho* objective, int depth){
     objective->sub_path[depth+1]) == 0)
         return base;
     return closest(base->equal,objective, depth+1);
+}
+
+int hash(char* value) { 
+    int hash = 0,c,i = 0;
+
+    while ((c = value[i++]) != 0 ) { 
+        hash = (hash*33 + c)%MAXIMO; 
+    }
+    return hash;
+}
+
+void insereHashValue(Directory* dir,char* value,HashValue** values,int hash_int){
+    HashValue* next_el = malloc(sizeof(HashValue));
+    dir->hash_value = hash_int;
+    next_el->dir = dir;
+    next_el->value = value;
+    next_el->next = values[hash_int];
+    values[hash_int] = next_el;
+}
+
+Directory* search_last(char* value,HashValue** values,int hash_int){
+    HashValue* aux = values[hash_int];
+    Directory* aux_dir = NULL;
+    while(aux != NULL){
+        if(aux->value != NULL && strcmp(aux->value,value) == SAME_STR)
+            aux_dir = aux->dir;
+        aux = aux->next;
+    }
+    return aux_dir;
 }

@@ -6,6 +6,8 @@
 #define SAME_STR 0
 
 #define MAX_LINE 65535 
+#define MAXIMO 74903
+
 
 #define HELP_STR "help"
 #define HELP_DESC "Imprime os comandos disponíveis."
@@ -36,7 +38,7 @@ typedef struct value* link_value;
 
 typedef struct dir{
     link head;
-    char* value;
+    int hash_value;
     struct caminho* base_path;
     struct dir* equal;
     struct dir* diferent;   
@@ -52,8 +54,14 @@ typedef struct caminho{
     int quant_path;
 }Caminho;
 
+typedef struct hashvalue{
+    char* value;
+    struct dir* dir;
+    struct hashvalue* next;
+}HashValue;
 
-
+HashValue* findByHashValue(Directory* h, HashValue* hash_val);
+Directory* search_last(char* value,HashValue** values,int hash_int);
 Directory* NEWDirectory(Caminho* path,Directory* equal,Directory* dif,int depth);
 Directory* insert_dir(Directory* base,int depth,int max_size,Caminho* path);
 Directory* search_dir(Directory* base,int depth,int max_size,Caminho* new_path);
@@ -66,11 +74,13 @@ link max(link h);
 link delete_node(link h, char* text);
 link search(link h, char* text) ;
 void traverse_delete_sub(link h);
-void traverse(Directory* h);
+void traverse(Directory* h,HashValue** values);
 void traverse_alphabetic(link h);
-void traverse_filter(Directory* h, char* value,int* check);
-void traverse_delete_dir(Directory* h);
-void delete_dir(Directory* h);
+void traverse_delete_dir(Directory* h,HashValue** values);
+void delete_dir(Directory* h,HashValue** values);
 void deleteTree(struct dir** h);
 void delete_path(Caminho* h);
+HashValue* delete_hashvalue(HashValue* hash_value,Directory* h);
+void insereHashValue(Directory* dir,char* value,HashValue** values,int hash_int);
+int hash(char* value);
 

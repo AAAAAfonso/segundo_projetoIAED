@@ -54,9 +54,9 @@ char* leitura_valor(char* str_array, int len){
 }
 
 
-void set(Directory* first_dir, char* str_array){
+void set(Directory* first_dir, char* str_array,HashValue** values){
 
-    int i = 0,len;
+    int i = 0,len,hash_value;
     char* valor;
     Caminho* path ;
     Directory* aux_bucket = first_dir;
@@ -70,28 +70,29 @@ void set(Directory* first_dir, char* str_array){
     len = strlen(str_array);
     valor = leitura_valor(str_array,len);
     len=path->quant_path;
+    
+    if((hash_value = hash(valor)) == 0)
+        hash_value = 1;
 
     for(i=0;i<len;++i){
         aux_bucket->head = insert_without_rep(aux_bucket->head,path->sub_path[i]);
         first_dir = insert_dir(aux_bucket,0,(i+1),path);
         aux_bucket = search_dir(first_dir,0,(i+1),path); 
     }
-    if(aux_bucket->value != NULL){
-        free(aux_bucket->value);
-        aux_bucket->value = valor;
-    }else{
-        aux_bucket->value = valor;
-    }
+
+    if(aux_bucket->hash_value != 0)
+        values[aux_bucket->hash_value] = delete_hashvalue(values[aux_bucket->hash_value],aux_bucket);
+    insereHashValue(aux_bucket,valor,values,hash_value);
     delete_path(path);
     path = NULL;
 } 
 
 
-void print_fun(Directory* first_dir){
-    traverse(first_dir);   
+void print_fun(Directory* first_dir,HashValue** values){
+    traverse(first_dir,values);   
 }
 
-void find(Directory* first_dir,char* str_array){
+void find(Directory* first_dir,char* str_array,HashValue** values){
     Directory* aux;
     int len;
     Caminho* path;
@@ -101,10 +102,10 @@ void find(Directory* first_dir,char* str_array){
     path = leitura_caminho(str_array,len);
 
     if((aux=search_dir(first_dir,0,path->quant_path,path)) != NULL){
-        if(aux->value == NULL){
+        if(aux->hash_value == 0){
             printf("no data\n");
         }else{
-            printf("%s\n", aux->value);
+            printf("%s\n", findByHashValue(aux,values[aux->hash_value])->value);
         }
     }else{ 
         printf("not found\n");
@@ -137,30 +138,38 @@ void list(Directory* first_dir,char* str_array){
     } 
 }
 
-void searchf(Directory* first_dir, char* str_array){
-    int len,check[1] = {0};
+void searchf(char* str_array,HashValue** values){
+    int len,check,i;
     char* value;
+    Directory* aux;
 
 
     scanf(" %[^\n]",str_array);
     len = strlen(str_array);
     value = leitura_valor(str_array,len);
 
-    traverse_filter(first_dir, value,check);
-    if(check[0] == 0)
-        printf("not found\n");
+    check = hash(value);
+    if( check == 0)
+        check = 1;
 
+    if((aux = search_last(value,values,check)) == NULL)
+        printf("not found\n");
+    else{
+        len =  aux->base_path->quant_path;
+        for(i = 0; i < len;++i)
+            printf("/%s", aux->base_path->sub_path[i]);
+        printf("\n");
+    }
     free(value);
-    
 }
 
-void delete_(Directory* first_dir,char* str_array){
+void delete_(Directory* first_dir,char* str_array,HashValue** values){
     Directory *aux, *aux_prox;
     int len;
     Caminho* path;
 
     if(getchar() == '\n'){
-        traverse_delete_dir(first_dir->diferent);
+        traverse_delete_dir(first_dir->diferent,values);
         traverse_delete_sub(first_dir->head);
         first_dir->head = NULL;
         first_dir->diferent = NULL;
@@ -177,8 +186,8 @@ void delete_(Directory* first_dir,char* str_array){
             path->sub_path[0]) != 0)
                 aux_prox = aux_prox->diferent;
             aux_prox->diferent = aux->diferent;
-            traverse_delete_dir(aux->equal);
-            delete_dir(aux);
+            traverse_delete_dir(aux->equal,values);
+            delete_dir(aux,values);
             delete_path(path);
             path = NULL;
             return;
@@ -192,15 +201,15 @@ void delete_(Directory* first_dir,char* str_array){
             path->sub_path[path->quant_path-1]) != 0)
                 aux_prox = aux_prox->diferent;
             aux_prox->diferent = aux->diferent;
-            traverse_delete_dir(aux->equal);
-            delete_dir(aux);
+            traverse_delete_dir(aux->equal,values);
+            delete_dir(aux,values);
         }
         else{
             aux_prox->head = delete_node(aux_prox->head,path->sub_path[path->quant_path-1]);
             aux = aux_prox->equal;
             aux_prox->equal = aux->diferent;
-            traverse_delete_dir(aux->equal);
-            delete_dir(aux);
+            traverse_delete_dir(aux->equal,values);
+            delete_dir(aux,values);
         }
     }
     else{ 
@@ -226,8 +235,14 @@ int main(){
     /*armazena a string de um possivel comando*/
     char command[LEN_COMAND_MAX];
     char str_array[MAX_LINE];
+    HashValue* values[MAXIMO];
     struct dir* first_dir;
     struct caminho* inicial_path;
+    int i;
+
+    for(i=0;i<MAXIMO;++i){
+        values[i] = NULL;
+    }
     
     inicial_path = NEWPath(".",1);
 
@@ -239,22 +254,22 @@ int main(){
         if (strcmp(command,HELP_STR) ==  SAME_STR){
             help();
         }else if (strcmp(command,SET_STR) == SAME_STR){
-            set(first_dir,str_array);
+            set(first_dir,str_array,values);
         }else if (strcmp(command,PRINT_STR) == SAME_STR){
-            print_fun(first_dir);
+            print_fun(first_dir,values);
         }else if (strcmp(command,FIND_STR) == SAME_STR){
-            find(first_dir,str_array);
+            find(first_dir,str_array,values);
         }else if (strcmp(command,LIST_STR) == SAME_STR){
             list(first_dir,str_array);
         }else if (strcmp(command,SEARCH_STR) == SAME_STR){
-            searchf(first_dir,str_array);
+            searchf(str_array,values);
         }else if(strcmp(command,DELETE_STR) == SAME_STR){
-            delete_(first_dir,str_array);
+            delete_(first_dir,str_array,values);
         }
         scanf("%s",command);
     }
-    traverse_delete_dir(first_dir->diferent);
+    traverse_delete_dir(first_dir->diferent,values);
     delete_path(inicial_path);
-    delete_dir(first_dir);
+    delete_dir(first_dir,values);
     return EXIT_SUCCESS;
 }
