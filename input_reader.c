@@ -1,6 +1,6 @@
 
 /* 
-*Ficheiro:  set.c 
+*Ficheiro:  input_reader.c 
 *Autor: Afonso Freitas
 *descrição: contem as funcoes que são executadas na leitura do input
 */
@@ -32,9 +32,10 @@ os sub-caminhos são separados por um token*/
 Path* transformIntoPath(char* str_array,int len){
 
     /*Alocação de memoria para o tipo*/
-    Path* path_aux = malloc(sizeof(Path));
+    Path* path_aux = (Path*) malloc(sizeof(Path));
     char** total;
     int count_char = 1,i;
+    if(path_aux == NULL) return NULL;
 
     count_char = countCharInStr(str_array, TOKEN,len);
     /*caso nao seja encontrado nenhum sub-camimho sai da funcao*/
@@ -45,9 +46,11 @@ Path* transformIntoPath(char* str_array,int len){
     /*aloca a quantidade necessaria e atribui a uma lista de cadeia
     de caracteres os sub-caminhos*/
     total = (char**) malloc((count_char)*sizeof(char*));
+    if(total == NULL) return NULL;
     str_array = strtok(str_array , TOKEN_STR);
     for(i = 0; i < count_char; i++) {
-        total[i] = (char*)malloc((strlen(str_array)+1)*sizeof(char));
+        total[i] = (char*) malloc((strlen(str_array)+1)*sizeof(char));
+        if(total[i] == NULL) return NULL;
         strcpy(total[i],str_array);
         str_array = strtok(NULL, TOKEN_STR);
     }
@@ -72,7 +75,8 @@ char* transformIntoValue(char* str_array, int len){
             last_espaces = 0;
     }
     len = len-last_espaces;
-    value = malloc(sizeof(char)*(len+1));
+    value = (char*) malloc(sizeof(char)*(len+1));
+    if(value == NULL) return NULL;
     for(i = 0; i < len; i++)
         value[i] = str_array[i];
     value[i] = '\0';

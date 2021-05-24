@@ -1,6 +1,12 @@
+/* 
+*Ficheiro:  print.c 
+*Autor: Afonso Freitas
+*descrição: contem as funcoes associadas ao comando print
+*/
+
 #include "projeto_header.h"
 
-
+/*responsavel por imprimir os caminhos com a formatção pedida*/
 void print_aux(Directory* h,HashValue** values){
     int i;
     HashValue* aux;
@@ -13,6 +19,8 @@ void print_aux(Directory* h,HashValue** values){
     }
 }
 
+/*Esta função precorre a tabela pela ordem de criação, mais especificamente
+usando a travessia pre-order*/
 void print(Directory* h,HashValue** values){
     if(h == NULL)
         return;

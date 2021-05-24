@@ -65,7 +65,7 @@ HashValue* delete_hashvalue(HashValue* hash_value,Directory* h){
 /*insere um valor no inicio da linked list associada a uma hash table*/
 void insereHashValue(Directory* dir,char* value,HashValue** values,int hash_int){
 
-    HashValue* next_el = malloc(sizeof(HashValue));
+    HashValue* next_el = (HashValue*) malloc(sizeof(HashValue));
 
     dir->hash_value = hash_int;    
     next_el->dir = dir;   

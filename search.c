@@ -1,21 +1,23 @@
 /* 
-*Ficheiro:  hash_table.c 
+*Ficheiro:  search.c 
 *Autor: Afonso Freitas
-*descrição: contem a função associada ao comando search
+*descrição: contém a função associada ao comando search
 */
 
 #include "projeto_header.h"
 
-/**/
-void search(char* str_array,HashValue** values){
+/*
+*Imprime o primeiro caminho encontrado que contém exatamente o <valor> indicado
+*/
+int search(char* str_array,HashValue** values){
     int len,check,i;
     char* value;
     Directory* aux;
 
-    value = readValue(str_array);
+    if((value = readValue(str_array)) == NULL) return NO_MEM;
 
     check = hash(value);
-    if(check == 0) check = 1;
+    if(check == NOVALUE) check = NEWVALUE;
 
     if((aux = search_last(value,values,check)) == NULL) printf(NOT_FOUND);
     else{
@@ -25,4 +27,5 @@ void search(char* str_array,HashValue** values){
         printf("\n");
     }
     free(value);
+    return OK;
 }

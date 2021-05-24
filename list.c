@@ -8,7 +8,7 @@
 
 /*precorre uma "binary tree" que contem as subdiretorias
 por ordem alfabetica ou seja in-order*/
-void traverse_alphabetic(link h){
+void traverse_alphabetic(subdir h){
     if (h == NULL)
         return;
     traverse_alphabetic(h->l);
@@ -20,7 +20,7 @@ void traverse_alphabetic(link h){
 por ordem alfabética, ou seja o seu diretório, quando invocado sem argumentos,
 lista os componentes da raiz. Caso nao seja encontrado nehum caminhho imprime 
 "not found"*/
-void list(Directory* first_dir,char* str_array){
+int list(Directory* first_dir,char* str_array){
 
     Path* path;
 
@@ -30,7 +30,7 @@ void list(Directory* first_dir,char* str_array){
     else{
 
         Directory* aux;
-        path = readPath(str_array);
+        if((path = readPath(str_array)) == NULL) return NO_MEM;
         /*travessa por ordem alfabetica uma binary tree com todas as*/
         if((aux=search_dir(first_dir,0,path->quant_path,path)) != NULL){
             traverse_alphabetic(aux->head);
@@ -40,4 +40,5 @@ void list(Directory* first_dir,char* str_array){
         delete_path(path);
         path = NULL;
     } 
+    return OK;
 }

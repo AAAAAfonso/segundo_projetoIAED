@@ -8,17 +8,17 @@
 
 /*
 *Imprime o valor associado a  um dado caminho
-*caso nao o seja encontrador imprime "not found", caso encontre um
+*caso nao o seja encontrado imprime "not found", caso encontre um
 *caminho mas nenhum valor associado imprime "not found"
 */
-void find(Directory* first_dir,char* str_array,HashValue** values){
+int find(Directory* first_dir,char* str_array,HashValue** values){
 
     Directory* aux;
     Path* path;
 
-    path = readPath(str_array);
+    if((path = readPath(str_array)) == NULL) return NO_MEM;
 
-    /*procura através de um caminho e um dado valor*/
+    /*procura através de um caminho um dado valor*/
     if((aux=search_dir(first_dir,0,path->quant_path,path)) != NULL){
         if(aux->hash_value == 0){ /*caso nao exista nenhum valor associado*/
             printf(NO_DATA);
@@ -32,4 +32,5 @@ void find(Directory* first_dir,char* str_array,HashValue** values){
     }
     delete_path(path);
     path = NULL;
+    return OK;
 }
