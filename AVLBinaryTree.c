@@ -10,15 +10,15 @@ link NEW(char* text, link l, link r) {
     return x;
 }
 
-link search(link h, char* text) {
+link searchSubDir(link h, char* text) {
     if (h == NULL)
         return NULL;
     if (strcmp(text,h->txt) == SAME_STR)
         return h;
     if (strcmp(text,h->txt) < SAME_STR)
-        return search(h->l, text);
+        return searchSubDir(h->l, text);
     else
-        return search(h->r, text);
+        return searchSubDir(h->r, text);
 }
 
 link insert_without_rep(link h, char* text) {
@@ -65,19 +65,6 @@ link delete_node(link h, char* text) {
     return h;
 }
 
-HashValue* findByHashValue(Directory* h, HashValue* hash_val){
-    if(hash_val == NULL)
-        return NULL;
-    if(hash_val->next == NULL)
-        return hash_val;
-    else{
-        while (hash_val->dir != h){
-            hash_val = hash_val->next;
-        }
-        return hash_val;
-    }
-}
-
 void traverse(Directory* h,HashValue** values){
 
     int i;
@@ -95,14 +82,6 @@ void traverse(Directory* h,HashValue** values){
     traverse(h->diferent,values);
 }
 
-
-void traverse_alphabetic(link h){
-    if (h == NULL)
-        return;
-    traverse_alphabetic(h->l);
-    printf("%s\n",h->txt);
-    traverse_alphabetic(h->r);
-}
 
 void traverse_delete_dir(Directory* h,HashValue** values){
     if (h == NULL)
@@ -127,7 +106,7 @@ void traverse_delete_sub(link h){
 }
 
 
-void delete_path(Caminho* h){
+void delete_path(Path* h){
     int i;
     for(i = 0; i < h->quant_path;++i)
         free(h->sub_path[i]);
@@ -135,34 +114,6 @@ void delete_path(Caminho* h){
     free(h);
 }
 
-HashValue* delete_hashvalue(HashValue* hash_value,Directory* h){
-    HashValue* aux, *aux1 = hash_value;
-    if(hash_value != NULL){
-        if(hash_value->value != NULL){
-            if(hash_value->next == NULL){
-                free(hash_value->value);
-            }else{
-                if(hash_value->dir == h){
-                    aux = aux1->next;
-                    free(hash_value->value);
-                    free(hash_value);
-                    return aux;
-                }
-                while (hash_value->next->dir != h){
-                    hash_value = hash_value->next;
-                }
-                aux = hash_value->next;
-                hash_value->next = hash_value->next->next;
-                free(aux->value);
-                free(aux);
-                return aux1;
-            }
-        }
-        free(hash_value);
-        return NULL;
-    }  
-    return NULL;
-}
 
 void delete_dir(Directory* h,HashValue** values){
 
@@ -174,10 +125,10 @@ void delete_dir(Directory* h,HashValue** values){
     
 }
 
-Caminho* NEWPath(char* text,int depth){
+Path* NEWPath(char* text,int depth){
     int i;
     char** res = (char**) malloc(sizeof(char*)*depth);
-    Caminho* x=(Caminho*) malloc(sizeof(Caminho));
+    Path* x=(Path*) malloc(sizeof(Path));
     for(i = 0;i<depth;i++) {
         res[i] = malloc(sizeof(char)*(strlen(text)+1));
         strcpy(res[i],text);
@@ -187,11 +138,11 @@ Caminho* NEWPath(char* text,int depth){
     return x;
 }
 
-Directory* NEWDirectory(Caminho* path,Directory* equal,Directory* dif,int depth){
+Directory* NEWDirectory(Path* path,Directory* equal,Directory* dif,int depth){
     int j,i,len;
     char** aux = (char**) malloc(sizeof(char*)*depth);
     Directory* x = (Directory*) malloc(sizeof(struct dir));
-    Caminho* new_path=(Caminho*) malloc(sizeof(Caminho));
+    Path* new_path=(Path*) malloc(sizeof(Path));
 
     for(j = 0;j<depth;j++) {
         len = strlen(path->sub_path[j]);
@@ -211,7 +162,7 @@ Directory* NEWDirectory(Caminho* path,Directory* equal,Directory* dif,int depth)
     return x;
 }
 
-Directory* insert_dir(Directory* base,int depth,int max_size,Caminho* path){
+Directory* insert_dir(Directory* base,int depth,int max_size,Path* path){
     if(base == NULL)
         return NEWDirectory(path,NULL,NULL,max_size);
     if (base->base_path->quant_path < max_size)
@@ -224,7 +175,7 @@ Directory* insert_dir(Directory* base,int depth,int max_size,Caminho* path){
     return base;
 }
 
-Directory* search_dir(Directory* base,int depth,int max_size,Caminho* new_path){
+Directory* search_dir(Directory* base,int depth,int max_size,Path* new_path){
     if(base == NULL)
         return NULL;
     if (base->base_path->quant_path < max_size)
@@ -237,53 +188,3 @@ Directory* search_dir(Directory* base,int depth,int max_size,Caminho* new_path){
     return base;
 }  
 
-Directory* closest(Directory* base,Caminho* objective, int depth){
-    if(depth == objective->quant_path)
-        return NULL;
-    while (base->diferent == NULL &&
-    strcmp(base->diferent->base_path->sub_path[depth],
-    objective->sub_path[depth]) != 0){
-        base = base->diferent;
-        if(base->diferent == NULL)
-            return NULL;
-    }
-    if(depth == objective->quant_path - 1){
-        return base;
-    }
-    base = base->diferent;
-    if(depth == objective->quant_path - 2 && 
-    base->equal != NULL &&
-    strcmp(base->equal->base_path->sub_path[depth+1],
-    objective->sub_path[depth+1]) == 0)
-        return base;
-    return closest(base->equal,objective, depth+1);
-}
-
-int hash(char* value) { 
-    int hash = 0,c,i = 0;
-
-    while ((c = value[i++]) != 0 ) { 
-        hash = (hash*33 + c)%MAXIMO; 
-    }
-    return hash;
-}
-
-void insereHashValue(Directory* dir,char* value,HashValue** values,int hash_int){
-    HashValue* next_el = malloc(sizeof(HashValue));
-    dir->hash_value = hash_int;
-    next_el->dir = dir;
-    next_el->value = value;
-    next_el->next = values[hash_int];
-    values[hash_int] = next_el;
-}
-
-Directory* search_last(char* value,HashValue** values,int hash_int){
-    HashValue* aux = values[hash_int];
-    Directory* aux_dir = NULL;
-    while(aux != NULL){
-        if(aux->value != NULL && strcmp(aux->value,value) == SAME_STR)
-            aux_dir = aux->dir;
-        aux = aux->next;
-    }
-    return aux_dir;
-}

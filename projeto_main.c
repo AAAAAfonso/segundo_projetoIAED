@@ -1,172 +1,9 @@
 #include "projeto_header.h"
 
-Caminho* leitura_caminho(char* str_array,int len){
-    Caminho* path = malloc(sizeof(Caminho));
-    char** total;
-    int status = 0,count_char = 1,i;
-    /*path->quant_path = malloc(sizeof(int));*/
-
-    for(i = 0; i < len; ++i){
-        if(str_array[i] != '/')
-            status = 1;
-        if(str_array[i] == '/' && status == 1){
-            ++count_char;
-            status = 0;
-        }
-    }
-    if(status == 0){
-        --count_char;
-        if(count_char == 0){
-            path->quant_path=0;
-            return path;
-        }
-    }
-    total = (char**) malloc((count_char)*sizeof(char*));
-    str_array = strtok(str_array , "/");
-    for(i = 0; i < count_char; i++) {
-        total[i] = malloc((strlen(str_array)+1)*sizeof(char));
-        strcpy(total[i],str_array);
-        str_array = strtok(NULL, "/");
-    }
-    path->sub_path=total;
-    path->quant_path=count_char;
-    return path;
-}
-
-char* leitura_valor(char* str_array, int len){
-    int i, last_espaces = 0;
-    char* valor;
-    len = strlen(str_array);
-    for(i = 0; i < len; ++i){
-        if(str_array[i] == ' ' ||str_array[i] == '\t'||
-        str_array[i] == '\n' )
-            last_espaces++;
-        else{
-            last_espaces = 0;
-        }
-    }
-    len = len-last_espaces;
-    valor = malloc(sizeof(char)*(len+1));
-    for(i = 0; i < len; i++)
-        valor[i] = str_array[i];
-    valor[i] = '\0';
-    return valor;
-}
-
-
-void set(Directory* first_dir, char* str_array,HashValue** values){
-
-    int i = 0,len,hash_value;
-    char* valor;
-    Caminho* path ;
-    Directory* aux_bucket = first_dir;
-    
-    scanf(" %s", str_array);
-    len = strlen(str_array);
-    path = leitura_caminho(str_array,len);
-    
-
-    scanf(" %[^\n]",str_array);
-    len = strlen(str_array);
-    valor = leitura_valor(str_array,len);
-    len=path->quant_path;
-    
-    if((hash_value = hash(valor)) == 0)
-        hash_value = 1;
-
-    for(i=0;i<len;++i){
-        aux_bucket->head = insert_without_rep(aux_bucket->head,path->sub_path[i]);
-        first_dir = insert_dir(aux_bucket,0,(i+1),path);
-        aux_bucket = search_dir(first_dir,0,(i+1),path); 
-    }
-
-    if(aux_bucket->hash_value != 0)
-        values[aux_bucket->hash_value] = delete_hashvalue(values[aux_bucket->hash_value],aux_bucket);
-    insereHashValue(aux_bucket,valor,values,hash_value);
-    delete_path(path);
-    path = NULL;
-} 
-
-
-void print_fun(Directory* first_dir,HashValue** values){
-    traverse(first_dir,values);   
-}
-
-void find(Directory* first_dir,char* str_array,HashValue** values){
-    Directory* aux;
-    int len;
-    Caminho* path;
-
-    scanf(" %s", str_array);
-    len = strlen(str_array);
-    path = leitura_caminho(str_array,len);
-
-    if((aux=search_dir(first_dir,0,path->quant_path,path)) != NULL){
-        if(aux->hash_value == 0){
-            printf("no data\n");
-        }else{
-            printf("%s\n", findByHashValue(aux,values[aux->hash_value])->value);
-        }
-    }else{ 
-        printf("not found\n");
-    }
-    delete_path(path);
-    path = NULL;
-}
-
-void list(Directory* first_dir,char* str_array){
-
-    Caminho* path;
-
-    if(getchar() == '\n')
-        traverse_alphabetic(first_dir->head);
-    else{
-        int len;
-        Directory* aux;
-
-        scanf(" %s", str_array);
-        len = strlen(str_array);
-        path = leitura_caminho(str_array,len);
-
-        if((aux=search_dir(first_dir,0,path->quant_path,path)) != NULL){
-            traverse_alphabetic(aux->head);
-        }
-        else
-            printf("not found\n");
-        delete_path(path);
-        path = NULL;
-    } 
-}
-
-void searchf(char* str_array,HashValue** values){
-    int len,check,i;
-    char* value;
-    Directory* aux;
-
-
-    scanf(" %[^\n]",str_array);
-    len = strlen(str_array);
-    value = leitura_valor(str_array,len);
-
-    check = hash(value);
-    if( check == 0)
-        check = 1;
-
-    if((aux = search_last(value,values,check)) == NULL)
-        printf("not found\n");
-    else{
-        len =  aux->base_path->quant_path;
-        for(i = 0; i < len;++i)
-            printf("/%s", aux->base_path->sub_path[i]);
-        printf("\n");
-    }
-    free(value);
-}
-
 void delete_(Directory* first_dir,char* str_array,HashValue** values){
+    
     Directory *aux, *aux_prox;
-    int len;
-    Caminho* path;
+    Path* path;
 
     if(getchar() == '\n'){
         traverse_delete_dir(first_dir->diferent,values);
@@ -175,9 +12,8 @@ void delete_(Directory* first_dir,char* str_array,HashValue** values){
         first_dir->diferent = NULL;
         return;
     }
-    scanf(" %s", str_array);
-    len = strlen(str_array);
-    path = leitura_caminho(str_array,len);
+    path = readPath(str_array);
+
     if((aux = search_dir(first_dir,0,path->quant_path,path)) != NULL){
         if(aux->base_path->quant_path == 1){
             first_dir->head = delete_node(first_dir->head,path->sub_path[path->quant_path-1]);
@@ -233,20 +69,13 @@ void help(){
 
 int main(){
     /*armazena a string de um possivel comando*/
-    char command[LEN_COMAND_MAX];
-    char str_array[MAX_LINE];
+    char command[LEN_COMAND_MAX],str_array[MAX_LINE];
     HashValue* values[MAXIMO];
     struct dir* first_dir;
-    struct caminho* inicial_path;
+    struct path* inicial_path;
     int i;
-
-    for(i=0;i<MAXIMO;++i){
-        values[i] = NULL;
-    }
-    
+    for(i=0;i<MAXIMO;++i) values[i] = NULL;
     inicial_path = NEWPath(".",1);
-
-
     first_dir = NEWDirectory(inicial_path,NULL,NULL,1);
 
     scanf("%s",command);
@@ -256,15 +85,15 @@ int main(){
         }else if (strcmp(command,SET_STR) == SAME_STR){
             set(first_dir,str_array,values);
         }else if (strcmp(command,PRINT_STR) == SAME_STR){
-            print_fun(first_dir,values);
+            print(first_dir,values);
         }else if (strcmp(command,FIND_STR) == SAME_STR){
             find(first_dir,str_array,values);
         }else if (strcmp(command,LIST_STR) == SAME_STR){
             list(first_dir,str_array);
         }else if (strcmp(command,SEARCH_STR) == SAME_STR){
-            searchf(str_array,values);
+            search(str_array,values);
         }else if(strcmp(command,DELETE_STR) == SAME_STR){
-            delete_(first_dir,str_array,values);
+            delete(first_dir,str_array,values);
         }
         scanf("%s",command);
     }
